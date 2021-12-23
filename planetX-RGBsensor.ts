@@ -50,7 +50,7 @@ namespace PlanetX_RGBsensor {
         let val = pins.i2cReadNumber(addr, NumberFormat.UInt8BE);
         return val;
     }
-    function rgb2hsl(color_r: number, color_g: number, color_b: number): number {
+    export function rgb2hsl(color_r: number, color_g: number, color_b: number): number {
         let Hue = 0
         let R = color_r * 100 / 255;
         let G = color_g * 100 / 255;
@@ -91,7 +91,6 @@ namespace PlanetX_RGBsensor {
     }
 
     //% blockId=apds9960_readcolor block="Color sensor IIC port color HUE(0~360)"
-    //% subcategory=Sensor group="IIC Port"
     export function readColor(): number {
         if (color_first_init == false) {
             initModule()
