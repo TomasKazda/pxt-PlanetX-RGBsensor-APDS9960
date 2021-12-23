@@ -91,6 +91,37 @@ namespace PlanetX_RGBsensor {
         i2cwrite_color(APDS9960_ADDR, APDS9960_ENABLE, tmp);
     }
 
+    function getAvgLight(): number {
+        if (color_first_init == false) {
+            initModule()
+            colorMode()
+        }
+        let tmp = i2cread_color(APDS9960_ADDR, APDS9960_STATUS) & 0x1;
+        while (!tmp) {
+            basic.pause(5);
+            tmp = i2cread_color(APDS9960_ADDR, APDS9960_STATUS) & 0x1;
+        }
+        let c = i2cread_color(APDS9960_ADDR, APDS9960_CDATAL) + i2cread_color(APDS9960_ADDR, APDS9960_CDATAH) * 256;
+        return Math.round(c / 3)
+    }
+
+    function getColorPoint(): number {
+        let lightness = 0
+        for (let j = 0; j < 10; j++) {
+            lightness += getAvgLight()
+            basic.pause(50)
+        }
+        return Math.round(lightness / 10)
+    }
+
+    export function setBlackPoint() {
+        blackPoint = getColorPoint()
+    }
+
+    export function setWhitePoint() {
+        whitePoint = getColorPoint()
+    }
+
     //% blockId=apds9960_readcolor block="Color sensor IIC port color HUE(0~360)"
     export function readColor(): number {
         if (color_first_init == false) {
