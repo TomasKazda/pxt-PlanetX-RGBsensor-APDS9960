@@ -37,7 +37,8 @@ namespace PlanetX_RGBsensor {
     const APDS9960_GCONF4 = 0xAB
     const APDS9960_AICLEAR = 0xE7
     let color_first_init = false
-
+    let blackPoint = 25
+    let whitePoint = 350
 
     function i2cwrite_color(addr: number, reg: number, value: number) {
         let buf = pins.createBuffer(2)
@@ -113,6 +114,33 @@ namespace PlanetX_RGBsensor {
         //let hue = rgb2hue(r, g, b);
         let hue = rgb2hsl(r, g, b)
         return hue
+    }
+
+    //% blockId=apds9960_readcolor block="Color sensor HUE(0~360)Lightness(0-99)"
+    export function readGeekHLColor(): number {
+        if (color_first_init == false) {
+            initModule()
+            colorMode()
+        }
+        let tmp = i2cread_color(APDS9960_ADDR, APDS9960_STATUS) & 0x1;
+        while (!tmp) {
+            basic.pause(5);
+            tmp = i2cread_color(APDS9960_ADDR, APDS9960_STATUS) & 0x1;
+        }
+        let c = i2cread_color(APDS9960_ADDR, APDS9960_CDATAL) + i2cread_color(APDS9960_ADDR, APDS9960_CDATAH) * 256;
+        let r = i2cread_color(APDS9960_ADDR, APDS9960_RDATAL) + i2cread_color(APDS9960_ADDR, APDS9960_RDATAH) * 256;
+        let g = i2cread_color(APDS9960_ADDR, APDS9960_GDATAL) + i2cread_color(APDS9960_ADDR, APDS9960_GDATAH) * 256;
+        let b = i2cread_color(APDS9960_ADDR, APDS9960_BDATAL) + i2cread_color(APDS9960_ADDR, APDS9960_BDATAH) * 256;
+        // map to rgb based on clear channel
+        let avg = c / 3;
+        r = r * 255 / avg;
+        g = g * 255 / avg;
+        b = b * 255 / avg;
+        //let hue = rgb2hue(r, g, b);
+        let hue = Math.round(rgb2hsl(r, g, b))
+        let lightness = Math.map(Math.constrain(avg, blackPoint, whitePoint), blackPoint, whitePoint, 0, 99)
+        lightness = Math.round(Math.map(Math.constrain(Math.log(lightness * 100) * 100, 500, 900), 500, 900, 0, 99))
+        return hue * 100 + lightness
     }
 
     //% block="Color sensor IIC port detects %color"
