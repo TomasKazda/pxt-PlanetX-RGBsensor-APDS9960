@@ -105,7 +105,7 @@ namespace PlanetX_RGBsensor {
         return Math.round(c / 3)
     }
 
-    function getColorPoint(): number {
+    export function getColorPoint(): number {
         let lightness = 0
         for (let j = 0; j < 10; j++) {
             lightness += getAvgLight()
